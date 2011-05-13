@@ -1,16 +1,10 @@
 SMS-Send-AU-SMSGlobal
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+SMS::Send::SMSGlobal is an SMS::Send driver that delivers messages
+via the http://www.smsglobal.com website.
 
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
-
+You will create an account at http://smsglobal.com before using this
+driver.
 
 INSTALLATION
 
@@ -26,21 +20,21 @@ SUPPORT AND DOCUMENTATION
 After installing, you can find documentation for this module with the
 perldoc command.
 
-    perldoc SMS::Send::AU::SMSGlobal
+    perldoc SMS::Send::SMSGlobal
 
 You can also look for information at:
 
     RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=SMS-Send-AU-SMSGlobal
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=SMS-Send-SMSGlobal
 
     AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/SMS-Send-AU-SMSGlobal
+        http://annocpan.org/dist/SMS-Send-SMSGlobal
 
     CPAN Ratings
-        http://cpanratings.perl.org/d/SMS-Send-AU-SMSGlobal
+        http://cpanratings.perl.org/d/SMS-Send-SMSGlobal
 
     Search CPAN
-        http://search.cpan.org/dist/SMS-Send-AU-SMSGlobal/
+        http://search.cpan.org/dist/SMS-Send-SMSGlobal/
 
 
 LICENSE AND COPYRIGHT
