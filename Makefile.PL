@@ -1,7 +1,7 @@
 use inc::Module::Install;
 
-name     'SMS-Send-SMSGlobal';
-all_from 'lib/SMS/Send/SMSGlobal.pm';
+name     'SMS-Send-SMSGlobal_HTTP';
+all_from 'lib/SMS/Send/SMSGlobal/HTTP.pm';
 author   q{David Warrring <david.warring@gmail.com>};
 license  'perl';
 

@@ -1,4 +1,4 @@
-package SMS::Send::SMSGlobal;
+package SMS::Send::SMSGlobal::HTTP;
 
 use warnings;
 use strict;
@@ -10,7 +10,7 @@ require LWP::UserAgent;
 
 =head1 NAME
 
-SMS::Send::SMSGlobal - SMS::Send SMSGlobal.com Driver
+SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver (HTTP)
 
 =head1 VERSION
 
@@ -20,11 +20,17 @@ Version 0.01_1
 
 our $VERSION = '0.01_1';
 
-=head2 SYNOPSIS
+=head1 DESCRIPTION
+
+SMS::Send::SMSGlobal::HTTP is a simple driver for L<SMS::Send> for the SMS gateway at www.smsglobal.com.
+
+=head1 SUBROUTINES/METHODS
+
+=head2 new
 
     use SMS::Send;
 
-    my $sender = SMS::Send->new('SMSGlobal',
+    my $sender = SMS::Send->new('SMSGlobal::HTTP',
                _user      => 'my-username',
                _password  => 'my-password',
                _transport => 'http',          # 'https' (default), or 'http'
@@ -32,24 +38,6 @@ our $VERSION = '0.01_1';
                _verbose =>     1              # enable tracing
            );
 
-    my $sent = $sender->send_sms(
-        to        => '+61 4 8799 9999',       # the recipient phone number
-        text      => "Hello, SMS world!",     # the text of the message to send
-        _from     => '+6 1 4881 11111',       # optional from address per message (for email)
-    );
-
-=cut
-
-=head1 DESCRIPTION
-
-SMS::Send::SMSGlobal is a very bare-bones driver for L<SMS::Send> for
-the SMS gateway at www.smsglobal.com via HTTP. It currently supports only
-the most basic of functionality required by the author so he could use
-SMS::Send.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 new
 
 =cut
 
@@ -85,9 +73,16 @@ sub new {
     $self;
 }
 
-=cut
-
 =head2 send_sms
+
+    my $sent = $sender->send_sms(
+        to        => '+61 4 8799 9999',       # the recipient phone number
+        text      => "Hello, SMS world!",     # the text of the message to send
+        _from     => '+61 4 8811 1111',       # optional from address per message (for email),
+    );
+
+You can also set a delay, using the C<_scheduledtime>, parameter. This needs
+to be formatted as yyyy-mmm-dd hh:mm:ss in the time-zone as defined for your
 
 =cut
 
@@ -102,7 +97,7 @@ sub send_sms {
 	text => delete $message{text},
 	);
 
-    foreach (qw(user password from api maxsplit userfield scheduleddatetime)) {
+    foreach (qw(user password from api maxsplit userfield scheduledatetime)) {
 
 	my $val = delete $message{ '_' . $_ };
 
@@ -113,6 +108,20 @@ sub send_sms {
     if (my @_ignored_options = sort keys %message) {
 	warn ref($self)
 	    . "->send_sms: ignoring unsupported option(s): @_ignored_options"
+    };
+
+    #
+    # convert objects that support ymd & hms methods
+    #
+
+    do {
+	
+	for ( $params{scheduledatetime} ) {
+	    next unless defined && ref;
+	    local $SIG{__DIE__};
+	    $_ = $_->ymd('-') .' '.$_->hms(':')
+		if (eval{ $_->can('ymd') && $_->can('hms')})
+	}
     };
 
     for ($params{to}, $params{from}) {
@@ -153,10 +162,16 @@ sub send_sms {
 
 David Warrring, C<< <david.warring at gmail.com> >>
 
-=head1 BUGS
+=head1 BUGS AND LIMITATIONS
+
+This module only attempts to implement the frugal HTTP/S commands as described
+in L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf> and L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>.
+
+There are other API's available (L<http://www.smsglobal.com/en-au/technology/developers.php>). Among the more fully featured
+is the SOAP interface (L<http://www.smsglobal.com/docs/SOAP.pdf>).
 
 Please report any bugs or feature requests to C<bug-sms-send-au-smsglobal at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SMS-Send-AU-SMSGlobal>.  I will be notified, and then you'll
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SMS-Send-SMSGlobal-HTTP>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
 
@@ -164,7 +179,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc SMS::Send::SMSGlobal
+    perldoc SMS::Send::SMSGlobal::HTTP
 
 
 You can also look for information at:
@@ -173,29 +188,26 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=SMS-Send-SMSGlobal>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=SMS-Send-SMSGlobal-HTTP>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/SMS-Send-SMSGlobal>
+L<http://annocpan.org/dist/SMS-Send-SMSGlobal-HTTP>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/SMS-Send-SMSGlobal>
+L<http://cpanratings.perl.org/d/SMS-Send-SMSGlobal-HTTP>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/SMS-Send-SMSGlobal/>
+L<http://search.cpan.org/dist/SMS-Send-SMSGlobal-HTTP/>
 
 =back
 
 
-=head1 ACKNOWLEDGEMENTS
-
-
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011 David Warrring.
+Copyright 2011 David Warring.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
