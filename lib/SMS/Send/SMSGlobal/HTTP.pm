@@ -119,8 +119,9 @@ Sender's mobile number. Where to send replies.
 =item C<_maxsplit> (default 3)
 
 The maximum number of 160 character chunks.
-You may need to increase this to send longer messages. Note that each chunk
-is treated as a sperate message, for billing purposes.
+You may need to increase this to send longer messages.
+
+Note: each chunk is metered as a separate message.
 
 =item C<_scheduledtime>
 
@@ -129,7 +130,8 @@ can be either (a) a string formatted as "yyyy-mm-dd hh:mm:ss" or (b)
 an object, such as L<DateTime> or L<Time::Piece> that provides C<hms> 
 and C<dms> methods.
 
-Note: All dates need to be in the time zone as specified in your  
+Note: All dates need to be in the time zone as specified in your SMSGlobal account
+preferences.
 
 =back
 
