@@ -3,14 +3,21 @@ package SMS::Send::SMSGlobal::HTTP;
 use warnings;
 use strict;
 
-use parent 'SMS::Send::Driver';
+use parent 'SMS::Send::Driver', 'Class::Accessor';
 use HTTP::Request::Common qw(POST);
 
 require LWP::UserAgent;
 
+sub _fields {
+    return qw(action text to _user _password _from _maxsplit _scheduledatetime _api _userfield __transport __verbose __ua __method __address)
+};
+
+use fields __PACKAGE__->_fields;
+__PACKAGE__->mk_accessors( __PACKAGE__->_fields );
+
 =head1 NAME
 
-SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver (HTTP)
+SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
@@ -22,7 +29,7 @@ our $VERSION = '0.01_1';
 
 =head1 DESCRIPTION
 
-SMS::Send::SMSGlobal::HTTP is a simple driver for L<SMS::Send> for the SMS gateway at www.smsglobal.com.
+SMS::Send::SMSGlobal::HTTP is a simple driver for L<SMS::Send> for the SMS gateway at www.smsglobal.com. It  the HTTP/HTTPS CGI gateway.
 
 =head1 SUBROUTINES/METHODS
 
@@ -33,11 +40,8 @@ SMS::Send::SMSGlobal::HTTP is a simple driver for L<SMS::Send> for the SMS gatew
     my $sender = SMS::Send->new('SMSGlobal::HTTP',
                _user      => 'my-username',
                _password  => 'my-password',
-               _transport => 'http',          # 'https' (default), or 'http'
-               _method => 'get',              # http method 'get' (default) or 'post'
-               _verbose =>     1              # enable tracing
+               __verbose =>  1
            );
-
 
 =cut
 
@@ -45,112 +49,196 @@ sub new {
     my $class = shift;
     my %args = @_;
 
-    my $ua = LWP::UserAgent->new;
-
-    my $transport = $args{_transport} || 'https';
-
-    if ($transport eq 'https') {
-	require Crypt::SSLeay;
-    }
-    else {
-	die "unknown value for _transport $transport: expected 'http' or 'https'"
-	    unless $transport eq 'http';
-    }
-
     # Create the object
-    my $self = bless {
-	ua => $ua,
-	verbose => $args{_verbose},
-	transport => $transport,
-	method => $args{_method},
-	_defaults  => {
-	    user =>  $args{_login} || $args{_user} || $args{_username},
-	    password => $args{_password},
-	    maxsplit => 3,
-	    },
-    }, $class;
+    my $self = fields::new ($class);
 
-    $self;
+    #
+    # Allow comman _user and _password aliases; just to ease interchange
+    # with other sms drivers
+    #
+
+    $self->{_user} = delete($args{_user})
+	|| delete($args{_username})
+	|| delete($args{_login})
+;
+    $self->{_password} = delete $args{_pass}
+	|| delete $args{_password};
+
+    foreach (sort keys %args) {
+	$self->{$_} = $args{$_};
+    }
+
+    $self->{_maxsplit} ||= 3;
+
+    $self->{__ua} ||= LWP::UserAgent->new;
+
+    $self->{__method} ||= 'post';
+    die "__method must be 'get' or 'post'"
+	unless $self->{__method} =~ m{^(get|post)$};
+
+    for ($self->{__transport} ) {
+	$_ ||= 'https';
+	die "__transport must be 'http' or 'https'"
+	    unless m{^https?$};
+    };
+
+    return $self;
 }
 
 =head2 send_sms
 
     my $sent = $sender->send_sms(
-        to        => '+61 4 8799 9999',       # the recipient phone number
-        text      => "Hello, SMS world!",     # the text of the message to send
-        _from     => '+61 4 8811 1111',       # optional from address per message (for email),
+        to        => '+61 4 8799 9999',
+        text      => "Hello, SMS world!",
+        _from     => '+61 4 8811 1111',
+        _scheduledtime => DateTime
+                             ->now(time_zone => 'Australia/Melbourne')
+                             ->add(minutes => 5)
     );
 
-You can also set a delay, using the C<_scheduledtime>, parameter. This needs
-to be formatted as yyyy-mmm-dd hh:mm:ss in the time-zone as defined for your
+=head3 standard options
+
+=over 4
+
+=item C<to>
+
+The recipient number, formatted as +<CountryCode><LocalNumber>
+
+=item C<text>
+
+The text of the message. Note that that longer messages will
+be split sent in chunks of 160 characters. You may also need to increase
+C<_maxsplit> to send longer messages.
+
+=item C<_from>
+
+Sender's mobile number. Where to send replies.
+
+=item C<_maxsplit> (default 3)
+
+The maximum number of 160 character chunks.
+You may need to increase this to send longer messages. Note that each chunk
+is treated as a sperate message, for billing purposes.
+
+=item C<_scheduledtime>
+
+Lets you delay sending of messages. This
+can be either (a) a string formatted as "yyyy-mm-dd hh:mm:ss" or (b)
+an object, such as L<DateTime> or L<Time::Piece> that provides C<hms> 
+and C<dms> methods.
+
+Note: All dates need to be in the time zone as specified in your  
+
+=back
+
+=head3 HTTP-2WAY Options
+
+Some extra options, from L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>, are
+also supported:
+
+=over 4
+
+=item C<_api>
+
+enables 2-way message (default: 1 enabled)
+
+=item C<_userfield>
+
+custom field to store internal IDs or other information (Maximum of
+255 characters)
+
+=back
+
+=head3 Internal Options
+
+=over 4
+
+=item C<__verbose>
+
+enable tracing
+
+=item C<__transport>
+
+transport to use; 'https' (default) or 'http'.
+
+=item C<__method>
+
+http method to use 'post' (default) or 'get'
+
+=item C<__address> 
+
+SMSGlobal gateway address (default: 'http://smsglobal.com/http-api.php');
+
+=back
 
 =cut
 
 sub send_sms {
     my $self = shift;
-    my %message = @_;
+    my %opt = @_;
 
-    my %params = (
-	%{ $self->{_defaults}},
-	action => 'sendsms',	    
-	to => delete $message{to},
-	text => delete $message{text},
+    my $msg = ref($self)->new( %$self, %opt );
+
+    my %http_params = (
+	action => 'sendsms',
 	);
 
-    foreach (qw(user password from api maxsplit userfield scheduledatetime)) {
-
-	my $val = delete $message{ '_' . $_ };
-
-	$params{ $_ } = $val
-	    if defined $val;
+    foreach (sort keys %$msg) {
+	next if m{^__};
+	my $val = $msg->{$_};
+	(my $key = $_) =~ s{^_}{};
+	$http_params{$key} = $val;
     }
 
-    if (my @_ignored_options = sort keys %message) {
-	warn ref($self)
-	    . "->send_sms: ignoring unsupported option(s): @_ignored_options"
-    };
+    for ( $http_params{scheduledatetime} ) {
+	next unless defined && ref;
+	#
+	# stringify objects that support ymd & hms methods
+	#
+	local $SIG{__DIE__};
+	$_ = $_->ymd('-') .' '.$_->hms(':')
+	    if (eval{ $_->can('ymd') && $_->can('hms')})
+    }
 
-    #
-    # convert objects that support ymd & hms methods
-    #
-
-    do {
-	
-	for ( $params{scheduledatetime} ) {
-	    next unless defined && ref;
-	    local $SIG{__DIE__};
-	    $_ = $_->ymd('-') .' '.$_->hms(':')
-		if (eval{ $_->can('ymd') && $_->can('hms')})
-	}
-    };
-
-    for ($params{to}, $params{from}) {
+    for ($http_params{to}, $http_params{from}) {
+	#
+	# tidy up from and to numbers
+	#
 	next unless defined;
 
 	s{^\+}{};
 	s{\s}{}g;
     }
 
-    if ($self->{verbose}) {
+    if ($msg->__verbose) {
 	print "params:\n";
-	foreach (sort keys %params) {
-	    print "  $_: $params{$_}\n"
+	foreach (sort keys %http_params) {
+	    print "  $_: $http_params{$_}\n"
 	}
     }
 
-    my $transport = $self->{transport};
-    my $method = $self->{method} || 'post';
+    my $address = $msg->__address || 'http://smsglobal.com/http-api.php';
+    my $transport = $msg->__transport || 'https';
+    my $method = $msg->__method || 'post';
 
-    my $address = "$transport://smsglobal.com/http-api.php";
-    print "Address : $address ($method)" if $self->{verbose};
+    if ($transport eq 'http') {
+	$address =~ s{^http:}{https:};
+	require Crypt::SSLeay;
+    }
+    else {
+	$address =~ s{^https:}{http:};
+    }
+
+    print "Address : $address ($method)" if $msg->__verbose;
 
     my $req =  ($method =~ m{get}i)
-	? GET($address => [ %{ \%params } ])
-	: POST($address => [ %{ \%params } ]);
+	? GET($address => [ %{ \%http_params } ])
+	: POST($address => [ %{ \%http_params } ]);
     
-    my $res = $self->{ua}->request($req);
+    my $res = $msg->__ua->request($req);
 	
-    if ($self->{verbose} ) {
+    if ($msg->__verbose ) {
+	# todo tidy up response
 	print "Status: ",$res->status_line,"\n";
 	print $res->headers_as_string,"\n",$res->content,"\n";
     }
@@ -214,7 +302,6 @@ under the terms of either: the GNU General Public License as published
 by the Free Software Foundation; or the Artistic License.
 
 See http://dev.perl.org/licenses/ for more information.
-
 
 =cut
 

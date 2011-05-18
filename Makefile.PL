@@ -9,9 +9,12 @@ requires (
     'LWP::UserAgent'        => 0,
     'SMS::Send::Driver'     => 0,
     'HTTP::Request::Common' => 0,
+    'Class::Accessor'       => 0,
+    'fields'                => 0,
     );
 
 recommends (
+    # required for http transport
     'Crypt::SSLeay' => 0,
     );
 
