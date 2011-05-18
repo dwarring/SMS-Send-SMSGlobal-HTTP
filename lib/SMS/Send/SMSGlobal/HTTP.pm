@@ -30,7 +30,8 @@ our $VERSION = '0.01_1';
 
 =head1 DESCRIPTION
 
-SMS::Send::SMSGlobal::HTTP is a simple driver for L<SMS::Send> for the SMS gateway at www.smsglobal.com. It  the HTTP/HTTPS CGI gateway.
+SMS::Send::SMSGlobal::HTTP is a simple driver for L<SMS::Send> for sending messages via www.smsglobal.com
+using the HTTP/HTTPS CGI gateway.
 
 =head1 SUBROUTINES/METHODS
 
@@ -60,8 +61,8 @@ sub new {
 
     $self->{_user} = delete($args{_user})
 	|| delete($args{_username})
-	|| delete($args{_login})
-;
+	|| delete($args{_login});
+
     $self->{_password} = delete $args{_pass}
 	|| delete $args{_password};
 
@@ -97,7 +98,7 @@ sub new {
                              ->add(minutes => 5)
     );
 
-=head3 standard options
+=head3 HTTP Options
 
 =over 4
 
@@ -134,8 +135,7 @@ Note: All dates need to be in the time zone as specified in your
 
 =head3 HTTP-2WAY Options
 
-Some extra options, from L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>, are
-also supported:
+Some extra options, as described in L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>:
 
 =over 4
 
