@@ -1,6 +1,6 @@
 use inc::Module::Install;
 
-name     'SMS-Send-SMSGlobal_HTTP';
+name     'SMS-Send-SMSGlobal-HTTP';
 all_from 'lib/SMS/Send/SMSGlobal/HTTP.pm';
 author   q{David Warrring <david.warring@gmail.com>};
 license  'perl';
@@ -11,11 +11,11 @@ requires (
     'HTTP::Request::Common' => 0,
     'Class::Accessor'       => 0,
     'fields'                => 0,
+    'parent'                => 0,
+    'Crypt::SSLeay'         => 0,
     );
 
 recommends (
-    # required for http transport
-    'Crypt::SSLeay' => 0,
     );
 
 build_requires 'Test::More';

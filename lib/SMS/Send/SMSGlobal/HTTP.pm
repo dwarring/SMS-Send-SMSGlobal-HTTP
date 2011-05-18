@@ -8,12 +8,13 @@ use HTTP::Request::Common qw(POST);
 
 require LWP::UserAgent;
 
-sub _fields {
-    return qw(action text to _user _password _from _maxsplit _scheduledatetime _api _userfield __transport __verbose __ua __method __address)
+sub __fields {
+    return qw(action text to _user _password _from _maxsplit _scheduledatetime
+              _api _userfield __transport __verbose __ua __method __address)
 };
 
-use fields __PACKAGE__->_fields;
-__PACKAGE__->mk_accessors( __PACKAGE__->_fields );
+use fields __PACKAGE__->__fields;
+__PACKAGE__->mk_accessors( __PACKAGE__->__fields );
 
 =head1 NAME
 
@@ -21,7 +22,7 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-Version 0.01_1
+VERSION 0.01_1
 
 =cut
 
@@ -211,7 +212,7 @@ sub send_sms {
     }
 
     if ($msg->__verbose) {
-	print "params:\n";
+	print "http params:\n";
 	foreach (sort keys %http_params) {
 	    print "  $_: $http_params{$_}\n"
 	}
@@ -223,9 +224,9 @@ sub send_sms {
 
     if ($transport eq 'http') {
 	$address =~ s{^http:}{https:};
-	require Crypt::SSLeay;
     }
     else {
+	require Crypt::SSLeay;
 	$address =~ s{^https:}{http:};
     }
 
