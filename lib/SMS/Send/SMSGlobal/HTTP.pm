@@ -7,6 +7,7 @@ use parent 'SMS::Send::Driver', 'Class::Accessor';
 use HTTP::Request::Common qw(POST);
 
 require LWP::UserAgent;
+require Crypt::SSLeay;
 
 sub __fields {
     return qw(action text to _user _password _from _maxsplit _scheduledatetime
@@ -22,11 +23,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.01_1
+VERSION 0.01
 
 =cut
 
-our $VERSION = '0.01_1';
+our $VERSION = '0.01';
 
 =head1 DESCRIPTION
 
@@ -91,7 +92,7 @@ sub new {
 
     my $sent = $sender->send_sms(
         to        => '+61 4 8799 9999',
-        text      => "Hello, SMS world!",
+        text      => 'Go to the window!',
         _from     => '+61 4 8811 1111',
         _scheduledtime => DateTime
                              ->now(time_zone => 'Australia/Melbourne')
@@ -118,20 +119,19 @@ Sender's mobile number. Where to send replies.
 
 =item C<_maxsplit> (default 3)
 
-The maximum number of 160 character chunks.
-You may need to increase this to send longer messages.
+The maximum number of 160 character transmisson chunks. You may need to
+increase this to send longer messages.
 
-Note: each chunk is metered as a separate message.
+Note: Each chunk is metered as a separate message.
 
 =item C<_scheduledtime>
 
-Lets you delay sending of messages. This
-can be either (a) a string formatted as "yyyy-mm-dd hh:mm:ss" or (b)
-an object, such as L<DateTime> or L<Time::Piece> that provides C<hms> 
-and C<dms> methods.
+Lets you delay sending of messages. This can be either (a) a string formatted
+as "yyyy-mm-dd hh:mm:ss" or (b) a date/time object that support C<ymd> and
+C<hms> methods. For example L<DateTime> or L<Time::Piece> objects.
 
-Note: All dates need to be in the time zone as specified in your SMSGlobal account
-preferences.
+Note: You date times need to to be specified in the same timezone as set in
+your SMSGlobal account preferences.
 
 =back
 
@@ -193,24 +193,26 @@ sub send_sms {
 	$http_params{$key} = $val;
     }
 
-    for ( $http_params{scheduledatetime} ) {
-	next unless defined && ref;
+    if (ref $http_params{scheduledatetime} ) {
 	#
 	# stringify objects that support ymd & hms methods
 	#
-	local $SIG{__DIE__};
-	$_ = $_->ymd('-') .' '.$_->hms(':')
-	    if (eval{ $_->can('ymd') && $_->can('hms')})
+	for ( $http_params{scheduledatetime} ) {
+	    $_ = $_->ymd('-') .' '.$_->hms(':')
+		if (eval{
+		    local $SIG{__DIE__};
+		    $_->can('ymd') && $_->can('hms')
+		    })
+	}
     }
 
-    for ($http_params{to}, $http_params{from}) {
+    for (qw(to from)) {
 	#
 	# tidy up from and to numbers
 	#
-	next unless defined;
+	next unless defined $http_params{$_};
 
-	s{^\+}{};
-	s{\s}{}g;
+	$http_params{$_} =~ s{^\+}{}
     }
 
     if ($msg->__verbose) {
@@ -228,7 +230,6 @@ sub send_sms {
 	$address =~ s{^http:}{https:};
     }
     else {
-	require Crypt::SSLeay;
 	$address =~ s{^https:}{http:};
     }
 
@@ -237,16 +238,25 @@ sub send_sms {
     my $req =  ($method =~ m{get}i)
 	? GET($address => [ %{ \%http_params } ])
 	: POST($address => [ %{ \%http_params } ]);
-    
-    my $res = $msg->__ua->request($req);
-	
+
+    my $res = eval {
+	local $SIG{__DIE__};
+	$msg->__ua->request($req);
+    };
+
+    warn $@ if $@;
+
     if ($msg->__verbose ) {
-	# todo tidy up response
-	print "Status: ",$res->status_line,"\n";
-	print $res->headers_as_string,"\n",$res->content,"\n";
-    }
 	
-    return $res->is_success;
+	print "**Status**\n",$res->status_line,"\n";
+	print "**Headers**\n",$res->headers_as_string,"\n";
+	print "**Content**\n",$res->content,"\n";
+    }
+
+    my $success = $res->is_success
+	&& $res->content =~ m{^(OK|SMSGLOBAL DELAY)};
+	
+    return $success;
 }
 
 =head1 AUTHOR

@@ -1,11 +1,10 @@
 SMS-Send-SMSGlobal-HTTP
 
 SMS::Send::SMSGlobal::HTTP is an SMS::Send driver that delivers messages
-using the HTTP or HTTPS via the http://www.smsglobal.com website.
+via HTTP or HTTPS through the http://www.smsglobal.com website.
 
-You will create an account at http://smsglobal.com before using this
-driver.
-
+You will need to create a trial  account at http://smsglobal.com before
+using this driver.
 
 INSTALLATION
 

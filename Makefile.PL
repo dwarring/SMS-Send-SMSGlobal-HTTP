@@ -6,19 +6,24 @@ author   q{David Warrring <david.warring@gmail.com>};
 license  'perl';
 
 requires (
+    'Class::Accessor'       => 0,
+    'Crypt::SSLeay'         => 0,
+    'fields'                => 0,
     'LWP::UserAgent'        => 0,
     'SMS::Send::Driver'     => 0,
     'HTTP::Request::Common' => 0,
-    'Class::Accessor'       => 0,
-    'fields'                => 0,
     'parent'                => 0,
-    'Crypt::SSLeay'         => 0,
     );
 
 recommends (
     );
 
-build_requires 'Test::More';
+test_requires (
+    'Test::More' => 0,
+    'Test::NoWarnings' => 0,
+    'Test::Exception' => 0,
+    'Test::MockObject' => 0,
+    );
 
 auto_install;
 
