@@ -1,6 +1,13 @@
 Revision history for SMS-Send-SMSGlobal-HTTP
 
-0.01_0  19th May 2011
-        Initial release.
+0.01    19th May 2011
+        [Initial release.]
+
+0.02    20th May 2011
+        [A couple of tweaks based on inital CPAN testers results.]
+        - Took out spurious dependency and require of Crypt::SSLeay
+        - Tweaked build of http_params - was passing through undefined
+          values under perl 5.8.x
+        
 
 

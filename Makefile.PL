@@ -7,7 +7,6 @@ license  'perl';
 
 requires (
     'Class::Accessor'       => 0,
-    'Crypt::SSLeay'         => 0,
     'fields'                => 0,
     'LWP::UserAgent'        => 0,
     'SMS::Send::Driver'     => 0,
