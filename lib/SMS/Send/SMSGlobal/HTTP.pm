@@ -22,11 +22,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.01
+VERSION 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 DESCRIPTION
 
