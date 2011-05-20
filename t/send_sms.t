@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 18;
 use Test::MockObject;
 use Test::Exception;
 
@@ -64,33 +64,49 @@ my %expected_content = (
     );
 
 sub check_request {
-    my ($case,$expect_ok,@stati) = @_;
-    @mock_responses = map { my ($code,$content) = @$_;
-			    my $resp = HTTP::Response->new($code);
-			    $resp->content($content);
-			    $resp;
+    my ($case, $expect_ok, @stati) = @_;
+
+    @mock_responses = map {
+	my ($code,$content) = @$_;
+	my $resp = HTTP::Response->new($code);
+	$resp->content($content);
+	$resp;
     } @stati;
+
     @requests = ();
+
     is(!!$send->send_sms(%message), !!$expect_ok, "send_sms() status $case");
+
     my %content = $requests[-1]->content =~ /\G(.*?)=(.*?)(?:&|$)/g;
+
     is_deeply(\%content,\%expected_content, "request content $case")
 	if %expected_content;
+
     ok(!@mock_responses,"number of requests $case");
 }
 
 my $SENT = 1;
 
-check_request("ok message, immediate delivery",$SENT,[200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+check_request("ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+
+# add in 2way fields
+
+$message{_api} = 1;
+$message{_userfield} = 'testing-1-2-3';
+
+$expected_content{api} = 1;
+$expected_content{userfield} = 'testing-1-2-3';
+
+check_request("ok message, http-tway", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
 
 $message{'_scheduledatetime'} = '2999-12-31 11:59:59';
 $expected_content{scheduledatetime} = '2999-12-31+11%3A59%3A59';
 
-check_request("ok message, delayed delivery",$SENT,[200 => 'SMSGLOBAL DELAY MSGID:49936728']);
+check_request("ok message, delayed delivery", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
 
 delete $message{_from};
 delete $expected_content{from};
 
-check_request("invalid request",!$SENT,[200 => 'ERROR: Missing parameter: from']);
+check_request("invalid request", !$SENT, [200 => 'ERROR: Missing parameter: from']);
 
 check_request("404 error",!$SENT,[404 => 'OK']);
-
