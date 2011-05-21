@@ -24,7 +24,7 @@ die "can't continue without object" unless $obj;
 
 can_ok($obj => qw(send_sms action text to _user _password _from _maxsplit
                   _scheduledatetime _api _userfield __transport __verbose
-                  __ua __method __address));
+                  __ua __address));
 
 lives_ok(sub {$obj->{text} = 'sample message'}, 'setting via hash - lives');
 is($obj->text, 'sample message', 'getter 1');

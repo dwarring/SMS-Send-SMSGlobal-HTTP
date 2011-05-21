@@ -10,7 +10,7 @@ require LWP::UserAgent;
 
 sub __fields {
     return qw(action text to _user _password _from _maxsplit _scheduledatetime
-              _api _userfield __transport __verbose __ua __method __address)
+              _api _userfield __transport __verbose __ua __address)
 };
 
 use fields __PACKAGE__->__fields;
@@ -73,16 +73,6 @@ sub new {
     $self->{_maxsplit} ||= 3;
 
     $self->{__ua} ||= LWP::UserAgent->new;
-
-    $self->{__method} ||= 'post';
-    die "__method must be 'get' or 'post'"
-	unless $self->{__method} =~ m{^(get|post)$};
-
-    for ($self->{__transport} ) {
-	$_ ||= 'https';
-	die "__transport must be 'http' or 'https'"
-	    unless m{^https?$};
-    };
 
     return $self;
 }
@@ -161,11 +151,14 @@ enable tracing
 
 =item C<__transport>
 
-transport to use; 'https' (default) or 'http'.
+Transport to use: 'https' (default) or 'http'.
 
-=item C<__method>
+'https' is recommended, however you'll need to have either L<Crypt::SSLeay> or
+L<IO::Socket::SSL>. More information at
+<http://search.cpan.org/dist/libwww-perl/README.SSL>.
 
-http method to use 'post' (default) or 'get'
+If neither of these are available on you platform, you can set your transport
+to C<http>.
 
 =item C<__address> 
 
@@ -178,6 +171,8 @@ SMSGlobal gateway address (default: 'http://smsglobal.com/http-api.php');
 sub send_sms {
     my $self = shift;
     my %opt = @_;
+
+    use Carp; local ($SIG{__DIE__}) = \&Carp::cluck;
 
     my $msg = ref($self)->new( %$self, %opt );
 
@@ -225,20 +220,17 @@ sub send_sms {
 
     my $address = $msg->__address || 'http://smsglobal.com/http-api.php';
     my $transport = $msg->__transport || 'https';
-    my $method = $msg->__method || 'post';
 
     if ($transport eq 'http') {
-	$address =~ s{^http:}{https:};
-    }
-    else {
 	$address =~ s{^https:}{http:};
     }
+    else {
+	$address =~ s{^http:}{https:};
+    }
 
-    print "Address : $address ($method)" if $msg->__verbose;
+    print "Address : $address" if $msg->__verbose;
 
-    my $req =  ($method =~ m{get}i)
-	? GET($address => [ %{ \%http_params } ])
-	: POST($address => [ %{ \%http_params } ]);
+    my $req = POST($address => [ %{ \%http_params } ]);
 
     my $res = eval {
 	local $SIG{__DIE__};

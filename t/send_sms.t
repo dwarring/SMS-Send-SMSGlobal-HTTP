@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 24;
 use Test::MockObject;
 use Test::Exception;
 
@@ -20,7 +20,7 @@ lives_ok( sub {
     $send = SMS::Send->new( 'SMSGlobal::HTTP',
 			    _user => "someone",
 			    _password => "secret",
-			    ##    __verbose => 1,
+##			        __verbose => 1,
 	)}, "SMS::Send->new('SMSGlobal::HTTP', ...) - lives");
 
 isa_ok($send,'SMS::Send');
@@ -77,27 +77,56 @@ sub check_request {
 
     is(!!$send->send_sms(%message), !!$expect_ok, "send_sms() status $case");
 
-    my %content = $requests[-1]->content =~ /\G(.*?)=(.*?)(?:&|$)/g;
+    my $request = $requests[-1]
+	or die "no request - unable to continue";
+
+    my %content = $request->content =~ /\G(.*?)=(.*?)(?:&|$)/g;
 
     is_deeply(\%content,\%expected_content, "request content $case")
 	if %expected_content;
 
     ok(!@mock_responses,"number of requests $case");
+
+    return $request;
 }
 
 my $SENT = 1;
+
+## basic requests ##
 
 check_request("ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
 
 # add in 2way fields
 
-$message{_api} = 1;
-$message{_userfield} = 'testing-1-2-3';
+my $request;
 
-$expected_content{api} = 1;
-$expected_content{userfield} = 'testing-1-2-3';
+do {
+    local ( $message{_api} ) = 1;
+    local ( $message{_userfield} ) = 'testing-1-2-3';
 
-check_request("ok message, http-tway", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    local ( $expected_content{api} ) = 1;
+    local ( $expected_content{userfield} ) = 'testing-1-2-3';
+
+    $request = check_request("ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    is($request->method, 'POST', 'Default method is post');
+    like($request->url, qr/^https:/, 'Default method is https');
+};
+
+do {
+    local( $message{__transport} ) = 'http';
+    $request = check_request("ok message, transport http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    like($request->url, qr/^http:/, 'transport set to http');
+};
+
+=for later
+do {
+    local( $message{__method} ) = 'get';
+    $request = check_request("ok message, transport http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    is($request->method, 'GET', 'method set to get');
+};
+=cut
+
+## delayed messages
 
 $message{'_scheduledatetime'} = '2999-12-31 11:59:59';
 $expected_content{scheduledatetime} = '2999-12-31+11%3A59%3A59';
