@@ -8,6 +8,8 @@ Revision history for SMS-Send-SMSGlobal-HTTP
         - Took out spurious dependency and require of Crypt::SSLeay
         - Tweaked build of http_params - was passing through undefined
           values under perl 5.8.x
-        
 
+0.03    22nd May 2011
+        - Took out _get option
+        - Fixed _transport option
 

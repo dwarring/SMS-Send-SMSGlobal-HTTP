@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 27;
 use Test::MockObject;
 use Test::Exception;
 
@@ -109,29 +109,53 @@ do {
 
     $request = check_request("ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
     is($request->method, 'POST', 'Default method is post');
-    like($request->url, qr/^https:/, 'Default method is https');
+    like($request->url, qr/^http:/, 'Default transport is http');
 };
 
 do {
-    local( $message{__transport} ) = 'http';
-    $request = check_request("ok message, transport http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
-    like($request->url, qr/^http:/, 'transport set to http');
+    local( $message{__transport} ) = 'https';
+    $request = check_request("ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    like($request->url, qr/^https:/, 'transport set to https');
 };
-
-=for later
-do {
-    local( $message{__method} ) = 'get';
-    $request = check_request("ok message, transport http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
-    is($request->method, 'GET', 'method set to get');
-};
-=cut
 
 ## delayed messages
 
-$message{'_scheduledatetime'} = '2999-12-31 11:59:59';
-$expected_content{scheduledatetime} = '2999-12-31+11%3A59%3A59';
+do {
 
-check_request("ok message, delayed delivery", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
+    local ( $message{'_scheduledatetime'} );
+    local ( $expected_content{scheduledatetime} );
+
+    ## date strings
+
+    $message{'_scheduledatetime'} = '2999-12-31 11:59:59';
+    $expected_content{scheduledatetime} = '2999-12-31+11%3A59%3A59';
+
+    check_request("ok message, scheduledatetime (string)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
+    my $mock_dt = Test::MockObject->new;
+
+    ## date objects
+
+    $mock_dt->mock( 
+	ymd => sub {
+	    my $self = shift;
+	    my $sep = shift;
+	    join( $sep, qw(2061 10 21) );
+	}
+	);
+    $mock_dt->mock(
+	hms => sub {
+	    my $self = shift;
+	    my $sep = shift;
+	    join( $sep, qw(09 05 17) );
+	},
+	);
+
+    $message{'_scheduledatetime'} = $mock_dt;
+    $expected_content{scheduledatetime} = '2061-10-21+09%3A05%3A17';
+
+    check_request("ok message, scheduledatetime (object)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
+
+};
 
 delete $message{_from};
 delete $expected_content{from};
