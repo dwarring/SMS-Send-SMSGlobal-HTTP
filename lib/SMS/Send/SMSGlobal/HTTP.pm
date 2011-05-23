@@ -120,7 +120,7 @@ Lets you delay sending of messages. This can be either (a) a string formatted
 as "yyyy-mm-dd hh:mm:ss" or (b) a date/time object that support C<ymd> and
 C<hms> methods. For example L<DateTime> or L<Time::Piece> objects.
 
-Note: You date times need to to be specified in the same timezone as set in
+Note: Your date times need to to be specified in the same timezone as set in
 your SMSGlobal account preferences.
 
 =back
