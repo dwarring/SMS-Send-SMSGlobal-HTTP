@@ -8,9 +8,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 27;
+use Test::More tests => 28;
 use Test::MockObject;
 use Test::Exception;
+use Test::NoWarnings;
 
 use SMS::Send;
 
@@ -96,35 +97,36 @@ my $SENT = 1;
 
 check_request("ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
 
-# add in 2way fields
+# add in http-2way fields
 
 my $request;
 
 do {
-    local ( $message{_api} ) = 1;
-    local ( $message{_userfield} ) = 'testing-1-2-3';
-
-    local ( $expected_content{api} ) = 1;
-    local ( $expected_content{userfield} ) = 'testing-1-2-3';
+    $message{_api} = 1;
+    $message{_userfield} = 'testing-1-2-3';
+    $expected_content{api} = 1;
+    $expected_content{userfield} = 'testing-1-2-3';
 
     $request = check_request("ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
     is($request->method, 'POST', 'Default method is post');
     like($request->url, qr/^http:/, 'Default transport is http');
+
+    delete $message{_api};
+    delete $message{_userfield};
+    delete $expected_content{api};
+    delete $expected_content{userfield};
 };
 
 do {
-    local( $message{__transport} ) = 'https';
+    $message{__transport} = 'https';
     $request = check_request("ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
     like($request->url, qr/^https:/, 'transport set to https');
+    delete $message{__transport};
 };
 
 ## delayed messages
 
 do {
-
-    local ( $message{'_scheduledatetime'} );
-    local ( $expected_content{scheduledatetime} );
-
     ## date strings
 
     $message{'_scheduledatetime'} = '2999-12-31 11:59:59';
@@ -155,6 +157,8 @@ do {
 
     check_request("ok message, scheduledatetime (object)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
 
+    delete $message{'_scheduledatetime'};
+    delete $expected_content{scheduledatetime};
 };
 
 delete $message{_from};
@@ -162,4 +166,4 @@ delete $expected_content{from};
 
 check_request("invalid request", !$SENT, [200 => 'ERROR: Missing parameter: from']);
 
-check_request("404 error",!$SENT,[404 => 'OK']);
+check_request("404 error", !$SENT, [404 => 'OK']);
