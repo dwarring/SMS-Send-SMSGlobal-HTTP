@@ -13,3 +13,10 @@ Revision history for SMS-Send-SMSGlobal-HTTP
         - Took out _get option
         - Fixed _transport option
 
+0.04    27th May 2011
+        - Direct _verbose output to STDERR not STDOUT.
+        - object.t: Replace LWP::UserAgent with Test::MockObject object,
+          to avoid failures in some build environments
+        - send_sms.t - avoid local ($some_hash{$key}) idiom in tests
+          to (hopefully) pass smoke tests for perl 5.6.1 
+
