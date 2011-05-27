@@ -22,11 +22,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.03
+VERSION 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 DESCRIPTION
 
@@ -211,9 +211,9 @@ sub send_sms {
     }
 
     if ($msg->__verbose) {
-	print "http params:\n";
+	print STDERR "http params:\n";
 	foreach (sort keys %http_params) {
-	    print "  $_: $http_params{$_}\n"
+	    print STDERR "  $_: $http_params{$_}\n"
 	}
     }
 
@@ -233,7 +233,7 @@ sub send_sms {
 	}
     }
 
-    print "Address : $address" if $msg->__verbose;
+    print STDERR "Address : $address" if $msg->__verbose;
 
     my $req = POST($address => [ %{ \%http_params } ]);
 
@@ -246,9 +246,9 @@ sub send_sms {
 
     if ($msg->__verbose ) {
 	
-	print "**Status**\n",$res->status_line,"\n";
-	print "**Headers**\n",$res->headers_as_string,"\n";
-	print "**Content**\n",$res->content,"\n";
+	print STDERR "**Status**\n",$res->status_line,"\n";
+	print STDERR "**Headers**\n",$res->headers_as_string,"\n";
+	print STDERR "**Content**\n",$res->content,"\n";
     }
 
     my $success = $res->is_success
