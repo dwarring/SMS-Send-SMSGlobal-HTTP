@@ -3,6 +3,8 @@ package SMS::Send::SMSGlobal::HTTP;
 use warnings;
 use strict;
 
+use 5.006;
+
 use parent 'SMS::Send::Driver', 'Class::Accessor';
 use HTTP::Request::Common qw(POST);
 
@@ -22,11 +24,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.04
+VERSION 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 DESCRIPTION
 

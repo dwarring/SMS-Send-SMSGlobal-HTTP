@@ -18,10 +18,11 @@ recommends (
     );
 
 test_requires (
-    'Test::More' => 0,
+    'Test::More'       => 0,
     'Test::NoWarnings' => 0,
-    'Test::Exception' => 0,
+    'Test::Exception'  => 0,
     'Test::MockObject' => 0,
+    'HTTP::Response'   => 0,
     );
 
 auto_install;

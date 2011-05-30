@@ -20,3 +20,7 @@ Revision history for SMS-Send-SMSGlobal-HTTP
         - send_sms.t - avoid local ($some_hash{$key}) idiom in tests
           to (hopefully) pass smoke tests for perl 5.6.1 
 
+0.05    30th May 2011
+        - Also mock LWP::UserAgent in send_sms.t
+        - Set perl version to 5.6.0
+

@@ -13,6 +13,8 @@ use Test::MockObject;
 use Test::Exception;
 use Test::NoWarnings;
 
+use HTTP::Response;
+
 use SMS::Send;
 
 my $send;
@@ -21,6 +23,7 @@ lives_ok( sub {
     $send = SMS::Send->new( 'SMSGlobal::HTTP',
 			    _user => "someone",
 			    _password => "secret",
+			    __ua => Test::MockObject->new,
 ##			        __verbose => 1,
 	)}, "SMS::Send->new('SMSGlobal::HTTP', ...) - lives");
 
