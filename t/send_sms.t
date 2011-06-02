@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 28;
+use Test::More tests => 31;
 use Test::MockObject;
 use Test::Exception;
 use Test::NoWarnings;
@@ -96,15 +96,15 @@ sub check_request {
 
 my $SENT = 1;
 
-## basic requests ##
+## basic request ##
 
 check_request("ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
-
-# add in http-2way fields
 
 my $request;
 
 do {
+    ## add in http-2way fields
+
     $message{_api} = 1;
     $message{_userfield} = 'testing-1-2-3';
     $expected_content{api} = 1;
@@ -121,8 +121,10 @@ do {
 };
 
 do {
+    ## https
+
     $message{__transport} = 'https';
-    $request = check_request("ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    $request = check_request("ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699602']);
     like($request->url, qr/^https:/, 'transport set to https');
     delete $message{__transport};
 };
@@ -162,6 +164,16 @@ do {
 
     delete $message{'_scheduledatetime'};
     delete $expected_content{scheduledatetime};
+};
+
+do {
+    # from callerids are tidied up to be alphanumeric & truncated to
+    # 11 characters
+
+    $message{_from} = '+H1_(fr0m-d8ve!)';
+    $expected_content{from} = 'H1_fr0md8ve';
+
+    $request = check_request("ok message with alphanumeric caller id", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699603']);
 };
 
 delete $message{_from};

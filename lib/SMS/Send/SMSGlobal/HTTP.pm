@@ -24,11 +24,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.05
+VERSION 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 DESCRIPTION
 
@@ -85,7 +85,7 @@ sub new {
     my $sent = $sender->send_sms(
         to        => '+61 4 8799 9999',
         text      => 'Go to the window!',
-        _from     => '+61 4 8811 1111',
+        _from     => 'Clang',
         _scheduledtime => DateTime
                              ->now(time_zone => 'Australia/Melbourne')
                              ->add(minutes => 5)
@@ -101,13 +101,13 @@ The recipient number, formatted as +<CountryCode><LocalNumber>
 
 =item C<text>
 
-The text of the message. Note that that longer messages will
-be split sent in chunks of 160 characters. You may also need to increase
-C<_maxsplit> to send longer messages.
+The text of the message.
 
 =item C<_from>
 
-Sender's mobile number. Where to send replies.
+Sets the from caller-ID. This can either be a reply telephone number, or an
+alphanumeric identifier matching ^[0-9a-zA-Z_]+$. For details. see
+http://www.routomessaging.com/dynamic-sender-id-service.pmx .
 
 =item C<_maxsplit> (default 3)
 
@@ -196,20 +196,31 @@ sub send_sms {
 	#
 	for ( $http_params{scheduledatetime} ) {
 	    $_ = $_->ymd('-') .' '.$_->hms(':')
-		if (eval{
+		if (ref && eval{
 		    local $SIG{__DIE__};
 		    $_->can('ymd') && $_->can('hms')
 		    })
 	}
     }
 
-    for (qw(to from)) {
-	#
-	# tidy up from and to numbers
-	#
-	next unless defined $http_params{$_};
+    if ( defined $http_params{to} ) {
+	$http_params{to} =~ s{^\+}{}
+    }
 
-	$http_params{$_} =~ s{^\+}{}
+    if ( defined $http_params{from} ) {
+	#
+	# SMS::Send tidies up the to address, but the from
+	# address is passed straight through. Duplicated here
+
+	$http_params{from} =~ s/[\s\(\)\[\]\{\}\.-]//g;
+	$http_params{from} =~ s{^\+}{};
+
+	# here's were they deviate. we might have a valid caller-ID,
+	# but it could also be an alphumeric id, see
+	#
+	# (see http://www.routomessaging.com/dynamic-sender-id-service.pmx)
+	#
+	$http_params{from} =~ s{[^\w]}{}g;
     }
 
     if ($msg->__verbose) {
@@ -220,7 +231,6 @@ sub send_sms {
     }
 
     my $address = $msg->__address || 'http://smsglobal.com/http-api.php';
-
 
     if (my $transport = $msg->__transport) {
 
