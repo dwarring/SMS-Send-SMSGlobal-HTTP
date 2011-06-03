@@ -186,7 +186,7 @@ do {
     #
     # SMS::Send 0.05 doesn't support lists; test the driver directly
     #
-    $message{to} = ['+61(4)770090099','0419 123 456'];
+    $message{to} = ['+61(4)770090099', '0419 123 456'];
     $expected_content{to} = '614770090099%2C0419123456';
 
     $request = check_request($driver, "ok message with alphanumeric caller id", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699604']);

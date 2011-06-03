@@ -283,9 +283,9 @@ in L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf> and L<http://www.smsglobal.com
 There are other API's available (L<http://www.smsglobal.com/en-au/technology/developers.php>). Among the more fully featured
 is the SOAP interface (L<http://www.smsglobal.com/docs/SOAP.pdf>).
 
-Also note that sending to a list of recipients is possible, but
-currently requires direct use of this driver, which can accept either a comma
-separated list, or an array reference to recipient mobile numbers.
+Also note that sending to a list of recipients is possible, but currently
+requires direct use of this driver. Recipients can be passed as either a
+a string of comma-separated mobile numbers, or as an array reference.
 
     my $driver = SMS::Send::SMSGlobal::HTTP->new(
         _user => $sms_login,
@@ -294,13 +294,16 @@ separated list, or an array reference to recipient mobile numbers.
         __transport => 'https',
     );
 
+   my @recipients = ( '+61(4)770090099', '0419 123 456' );
+
    my $sent = $driver->send_sms( _from => $caller_id,
-                                 to => \@recipient_mobile_nos );
+                                 to    => \@recipients,
+                                 text  => 'Hi everyone!',
+                                );
 
 Please report any bugs or feature requests to C<bug-sms-send-au-smsglobal at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SMS-Send-SMSGlobal-HTTP>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
-
 
 =head1 SUPPORT
 
