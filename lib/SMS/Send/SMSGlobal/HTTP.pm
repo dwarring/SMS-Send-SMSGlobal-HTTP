@@ -24,11 +24,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.06
+VERSION 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 DESCRIPTION
 
@@ -98,7 +98,7 @@ sub new {
 =item C<to>
 
 The recipient number. This can either be an international number (prefixed
-with 'C<+>') or an local number (with a leading C<0>).
+with C<+>) or an local number (with a leading C<0>).
 
 In the case of a local number, the country will be dertimined by your
 C<Default SMS Country> Locale Setting in your account preferences.
@@ -283,9 +283,10 @@ in L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf> and L<http://www.smsglobal.com
 There are other API's available (L<http://www.smsglobal.com/en-au/technology/developers.php>). Among the more fully featured
 is the SOAP interface (L<http://www.smsglobal.com/docs/SOAP.pdf>).
 
-Also note that sending to a list of recipients is possible, but currently
-requires direct use of this driver. Recipients can then be passed as either
-a string of comma-separated mobile numbers, or as an array reference.
+Multiple recipients is not currently supported via the L<SMS::Send>
+interface. However, this can be acheived by direct use of the driver, which
+can accept either an array of mobile numbers or a string containing a
+comma-separated list of mobile numbers.
 
     my $driver = SMS::Send::SMSGlobal::HTTP->new(
         _user => $sms_login,
