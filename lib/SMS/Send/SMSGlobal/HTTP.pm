@@ -97,7 +97,11 @@ sub new {
 
 =item C<to>
 
-The recipient number, formatted as +<CountryCode><LocalNumber>
+The recipient number. This can either be an international number (prefixed
+with 'C<+>') or an local number (with a leading C<0>).
+
+In the case of a local number, the country will be dertimined by your
+C<Default SMS Country> Locale Setting in your account preferences.
 
 =item C<text>
 
@@ -204,21 +208,19 @@ sub send_sms {
     }
 
     if ( defined $http_params{to} ) {
-	$http_params{to} =~ s{^\+}{}
+
+	$http_params{to} = join(',', @{ $http_params{to} })
+	    if (ref( $http_params{to} || '') eq 'ARRAY');
+	#
+	# smsglobl/http will accept 'to' as a comma-separated list of
+	# telephone numbers. Omit all but commas and alphanumerics.
+	#
+	$http_params{to} =~ s{[^\w,]}{}g;
     }
 
     if ( defined $http_params{from} ) {
 	#
-	# SMS::Send tidies up the to address, but the from
-	# address is passed straight through. Duplicated here
-
-	$http_params{from} =~ s/[\s\(\)\[\]\{\}\.-]//g;
-	$http_params{from} =~ s{^\+}{};
-
-	# here's were they deviate. we might have a valid caller-ID,
-	# but it could also be an alphumeric id, see
-	#
-	# (see http://www.routomessaging.com/dynamic-sender-id-service.pmx)
+	# restrict 'from' to an alphanumeric caller-ID
 	#
 	$http_params{from} =~ s{[^\w]}{}g;
     }
@@ -281,6 +283,20 @@ in L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf> and L<http://www.smsglobal.com
 There are other API's available (L<http://www.smsglobal.com/en-au/technology/developers.php>). Among the more fully featured
 is the SOAP interface (L<http://www.smsglobal.com/docs/SOAP.pdf>).
 
+Also note that sending to a list of recipients is possible, but
+currently requires direct use of this driver, which can accept either a comma
+separated list, or an array reference to recipient mobile numbers.
+
+    my $driver = SMS::Send::SMSGlobal::HTTP->new(
+        _user => $sms_login,
+        _password => $sms_pass,
+        __verbose => 1,
+        __transport => 'https',
+    );
+
+   my $sent = $driver->send_sms( _from => $caller_id,
+                                 to => \@recipient_mobile_nos );
+
 Please report any bugs or feature requests to C<bug-sms-send-au-smsglobal at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=SMS-Send-SMSGlobal-HTTP>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
@@ -291,7 +307,6 @@ automatically be notified of progress on your bug as I make changes.
 You can find documentation for this module with the perldoc command.
 
     perldoc SMS::Send::SMSGlobal::HTTP
-
 
 You can also look for information at:
 

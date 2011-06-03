@@ -8,7 +8,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 31;
+use Test::More tests => 34;
 use Test::MockObject;
 use Test::Exception;
 use Test::NoWarnings;
@@ -41,14 +41,12 @@ $mock_ua->mock(
 	shift @mock_responses or die;
     } );
 
-{
-    # Ugly but we need to mung the User Agent inside the driver inside the
-    # object
-    my $driver = $send->{OBJECT};
+# Ugly but we need to mung the User Agent inside the driver inside the
+# object
+my $driver = $send->{OBJECT};
 
-    isa_ok($driver,'SMS::Send::SMSGlobal::HTTP');
+isa_ok($driver,'SMS::Send::SMSGlobal::HTTP');
     $driver->{__ua} = $mock_ua;
-}
 
 my %message = (
     text => 'Hi there',
@@ -68,7 +66,7 @@ my %expected_content = (
     );
 
 sub check_request {
-    my ($case, $expect_ok, @stati) = @_;
+    my ($obj, $case, $expect_ok, @stati) = @_;
 
     @mock_responses = map {
 	my ($code,$content) = @$_;
@@ -79,7 +77,7 @@ sub check_request {
 
     @requests = ();
 
-    is(!!$send->send_sms(%message), !!$expect_ok, "send_sms() status $case");
+    is(!!$obj->send_sms(%message), !!$expect_ok, "send_sms() status $case");
 
     my $request = $requests[-1]
 	or die "no request - unable to continue";
@@ -98,7 +96,7 @@ my $SENT = 1;
 
 ## basic request ##
 
-check_request("ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+check_request($send, "ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
 
 my $request;
 
@@ -110,7 +108,7 @@ do {
     $expected_content{api} = 1;
     $expected_content{userfield} = 'testing-1-2-3';
 
-    $request = check_request("ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    $request = check_request($send, "ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
     is($request->method, 'POST', 'Default method is post');
     like($request->url, qr/^http:/, 'Default transport is http');
 
@@ -124,7 +122,7 @@ do {
     ## https
 
     $message{__transport} = 'https';
-    $request = check_request("ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699602']);
+    $request = check_request($send, "ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699602']);
     like($request->url, qr/^https:/, 'transport set to https');
     delete $message{__transport};
 };
@@ -137,7 +135,7 @@ do {
     $message{'_scheduledatetime'} = '2999-12-31 11:59:59';
     $expected_content{scheduledatetime} = '2999-12-31+11%3A59%3A59';
 
-    check_request("ok message, scheduledatetime (string)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
+    check_request($send, "ok message, scheduledatetime (string)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
     my $mock_dt = Test::MockObject->new;
 
     ## date objects
@@ -160,7 +158,7 @@ do {
     $message{'_scheduledatetime'} = $mock_dt;
     $expected_content{scheduledatetime} = '2061-10-21+09%3A05%3A17';
 
-    check_request("ok message, scheduledatetime (object)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
+    check_request($send, "ok message, scheduledatetime (object)", $SENT, [200 => 'SMSGLOBAL DELAY MSGID:49936728']);
 
     delete $message{'_scheduledatetime'};
     delete $expected_content{scheduledatetime};
@@ -173,12 +171,23 @@ do {
     $message{_from} = '+H1_(fr0m-d8ve!)';
     $expected_content{from} = 'H1_fr0md8ve';
 
-    $request = check_request("ok message with alphanumeric caller id", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699603']);
+    $request = check_request($send, "ok message with alphanumeric caller id", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699603']);
 };
 
 delete $message{_from};
 delete $expected_content{from};
 
-check_request("invalid request", !$SENT, [200 => 'ERROR: Missing parameter: from']);
+check_request($send, "invalid request", !$SENT, [200 => 'ERROR: Missing parameter: from']);
 
-check_request("404 error", !$SENT, [404 => 'OK']);
+check_request($send, "404 error", !$SENT, [404 => 'OK']);
+
+do {
+    ## list of recipients
+    #
+    # SMS::Send 0.05 doesn't support lists; test the driver directly
+    #
+    $message{to} = ['+61(4)770090099','0419 123 456'];
+    $expected_content{to} = '614770090099%2C0419123456';
+
+    $request = check_request($driver, "ok message with alphanumeric caller id", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699604']);
+};
