@@ -141,7 +141,7 @@ L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>:
 
 =item C<_api>
 
-Set to 0, to disabled two messaging. The default is 1 (enabled).
+Set to 0, to disabled two-way messaging. The default is 1 (enabled).
 
 =item C<_userfield>
 
