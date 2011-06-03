@@ -284,7 +284,7 @@ There are other API's available (L<http://www.smsglobal.com/en-au/technology/dev
 is the SOAP interface (L<http://www.smsglobal.com/docs/SOAP.pdf>).
 
 Also note that sending to a list of recipients is possible, but currently
-requires direct use of this driver. Recipients can be passed as either a
+requires direct use of this driver. Recipients can then be passed as either
 a string of comma-separated mobile numbers, or as an array reference.
 
     my $driver = SMS::Send::SMSGlobal::HTTP->new(
