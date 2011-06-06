@@ -115,7 +115,7 @@ http://www.routomessaging.com/dynamic-sender-id-service.pmx .
 
 =item C<_maxsplit> (default 3)
 
-The maximum number of 150 character (approx) transmisson chunks. You may need
+The maximum number of 150 character (approx) transmission chunks. You may need
 to increase this to send longer messages.
 
 Note: Each chunk is metered as a separate message.
