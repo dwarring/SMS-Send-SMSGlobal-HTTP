@@ -28,3 +28,6 @@ Revision history for SMS-Send-SMSGlobal-HTTP
         - Handle alphanumeric caller-IDs
         - Allow list of recipents numbers; driver level only
 
+0.07    6th June 2011
+        - Treat LWP request failure as fatal error.
+        - Save individual response codes in __responses attribute.
