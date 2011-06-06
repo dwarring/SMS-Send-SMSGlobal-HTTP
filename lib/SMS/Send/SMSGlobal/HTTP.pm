@@ -100,7 +100,7 @@ sub new {
 The recipient number. This can either be an international number (prefixed
 with C<+>) or an local number (with a leading C<0>).
 
-In the case of a local number, the country will be dertimined by your
+In the case of a local number, the country will be determined by your
 C<Default SMS Country> Locale Setting in your account preferences.
 
 =item C<text>
