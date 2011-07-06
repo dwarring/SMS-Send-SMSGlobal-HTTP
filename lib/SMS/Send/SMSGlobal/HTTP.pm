@@ -24,11 +24,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.07
+VERSION 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 DESCRIPTION
 
@@ -110,7 +110,7 @@ The text of the message.
 =item C<_from>
 
 Sets the from caller-ID. This can either be a reply telephone number, or an
-alphanumeric identifier matching ^[0-9a-zA-Z_]+$. For details. see
+alphanumeric identifier matching C<^[0-9a-zA-Z_]+$>. For details. see
 http://www.routomessaging.com/dynamic-sender-id-service.pmx .
 
 =item C<_maxsplit> (default 3)
@@ -123,7 +123,7 @@ Note: Each chunk is metered as a separate message.
 =item C<_scheduledtime>
 
 Lets you delay sending of messages. This can be either (a) a string formatted
-as "yyyy-mm-dd hh:mm:ss" or (b) a date/time object that support C<ymd> and
+as C<yyyy-mm-dd hh:mm:ss> or (b) a date/time object that support C<ymd> and
 C<hms> methods. For example L<DateTime> or L<Time::Piece> objects.
 
 Note: Your date times need to to be specified in the same timezone as set in
@@ -165,7 +165,7 @@ Transport to use: 'http' (default) or 'https'.
 Transport over 'https' is encrypted and more secure. However, this option
 requires either L<Crypt::SSLeay> or L<IO::Socket::SSL> to be installed. More
 information is available at
-<http://search.cpan.org/dist/libwww-perl/README.SSL>.
+L<http://search.cpan.org/dist/libwww-perl/README.SSL>.
 
 =item C<__verbose>
 
@@ -317,7 +317,7 @@ a comma-separated list of mobile numbers.
 The return value is the number of messages queued for delivery to individual
 recipients.
 
-C<__responses>, contains sucesss or error codes for each recipient.
+C<__responses> contains sucesss or error codes for each recipient.
 
     if ( $sent < scalar @recipients ) {
 	warn "failed to send to some participants";
@@ -335,7 +335,7 @@ David Warring, C<< <david.warring at gmail.com> >>
 =head1 BUGS AND LIMITATIONS
 
 This module only attempts to implement the simple HTTP/S C<sendsms> command as
-described in L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf> and L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>. 
+described in L<http://www.smsglobal.com/docs/HTTP.pdf> and L<http://www.smsglobal.com/docs/HTTP-2WAY.pdf>. 
 
 There are other API's available (L<http://www.smsglobal.com/en-au/technology/developers.php>). Among the more fully featured are the SOAP interface (L<http://www.smsglobal.com/docs/SOAP.pdf>) and SMPP (L<http://www.smsglobal.com/docs/SMPP.pdf>).
 
