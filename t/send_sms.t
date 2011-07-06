@@ -17,8 +17,6 @@ use HTTP::Response;
 
 use SMS::Send;
 
-##use Carp; $SIG{__DIE__} = \&Carp::confess;
-
 my $send;
 
 lives_ok( sub {
@@ -98,11 +96,11 @@ sub check_request {
 
 my $SENT = 1;
 
-## basic request ##
+do {
+    ## basic request ##
 
-check_request($send, "ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
-
-my $request;
+    check_request($send, "ok message, immediate delivery", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+};
 
 do {
     ## add in http-2way fields
@@ -112,7 +110,7 @@ do {
     $expected_content{api} = 1;
     $expected_content{userfield} = 'testing-1-2-3';
 
-    ($request) = check_request($send, "ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
+    my ($request) = check_request($send, "ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
     is($request->method, 'POST', 'Default method is post');
     like($request->url, qr/^http:/, 'Default transport is http');
 
@@ -126,7 +124,7 @@ do {
     ## https
 
     $message{__transport} = 'https';
-    ($request) = check_request($send, "ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699602']);
+    my ($request) = check_request($send, "ok message, transport https", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699602']);
     like($request->url, qr/^https:/, 'transport set to https');
     delete $message{__transport};
 };
@@ -169,7 +167,7 @@ do {
 };
 
 do {
-    # from callerids are tidied up to be alphanumeric & truncated to
+    # from caller-IDs are tidied up to be alphanumeric & truncated to
     # 11 characters
 
     $message{_from} = '+H1_(fr0m-d8ve!)';
@@ -178,27 +176,30 @@ do {
     check_request($send, "ok message with alphanumeric caller id", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699603']);
 };
 
-delete $message{_from};
-delete $expected_content{from};
+do {
+    ## request errors
 
-check_request($send, "invalid request", !$SENT, [200 => 'ERROR: Missing parameter: from']);
+    delete $message{_from};
+    delete $expected_content{from};
 
-check_request($send, "404 error", !$SENT, [404 => 'OK']);
+    check_request($send, "invalid request", !$SENT, [200 => 'ERROR: Missing parameter: from']);
+
+    check_request($send, "404 error", !$SENT, [404 => 'OK']);
+};
 
 do {
     ## list of recipients
-    #
-    # SMS::Send 0.05 doesn't support lists; test the driver directly
+    # - only available via direct use of the driver.
     #
     my @responses = ('OK: 0; Sent queued message ID: 941596d028699604',
 		     'ERROR: Missing parameter: to',
 		     'OK: 0; Sent queued message ID: 941596d028699605');
 
-    $message{to} = ['+61(4)770090099', 'snoops', '0419 123 456'];
+    $message{to} = ['+61(4)770090099', 'snoops!', '0419 123 456'];
     $expected_content{to} = '614770090099%2Csnoops%2C0419123456';
 
     my ($request, $sent) = check_request($driver, "ok message with alphanumeric caller id", $SENT, [200 => join("\n", @responses)]);
-    is($sent, 2, 'multiple recipients; return status');
+    is($sent, 2, 'multiple recipients, send count');
 
-    is_deeply($driver->__responses, \@responses, 'multiple recipients; responses');
+    is_deeply($driver->__responses, \@responses, 'multiple recipients, responses');
 };
