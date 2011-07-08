@@ -1,9 +1,10 @@
 use inc::Module::Install;
 
-name     'SMS-Send-SMSGlobal-HTTP';
-all_from 'lib/SMS/Send/SMSGlobal/HTTP.pm';
-author   q{David Warrring <david.warring@gmail.com>};
-license  'perl';
+name        'SMS-Send-SMSGlobal-HTTP';
+module_name 'SMS::Send::SMSGlobal::HTTP';
+all_from    'lib/SMS/Send/SMSGlobal/HTTP.pm';
+author      q{David Warrring <david.warring@gmail.com>};
+license     'perl';
 
 requires (
     'Class::Accessor'       => 0,
