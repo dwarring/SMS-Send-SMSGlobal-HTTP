@@ -12,3 +12,5 @@ Makefile.old
 \.tmp$
 \.bak$
 ^\.releaserc
+# Avoid configuration metadata file
+^MYMETA\.

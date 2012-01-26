@@ -10,7 +10,7 @@ use warnings;
 
 use Test::More tests => 36;
 use Test::MockObject;
-use Test::Exception;
+use Test::Fatal;
 use Test::NoWarnings;
 
 use HTTP::Response;
@@ -19,13 +19,13 @@ use SMS::Send;
 
 my $send;
 
-lives_ok( sub {
+is( exception {
     $send = SMS::Send->new( 'SMSGlobal::HTTP',
 			    _user => "someone",
 			    _password => "secret",
 			    __ua => Test::MockObject->new,
 ##			        __verbose => 1,
-	)}, "SMS::Send->new('SMSGlobal::HTTP', ...) - lives");
+	)} => undef, "SMS::Send->new('SMSGlobal::HTTP', ...) - lives");
 
 isa_ok($send,'SMS::Send');
 
@@ -38,7 +38,8 @@ $mock_ua->mock(
     request => sub {
 	shift;
 	push @requests => shift;
-	shift @mock_responses or die;
+	shift @mock_responses
+	    or die "no more responses";
     } );
 
 # Ugly but we need to mung the User Agent inside the driver inside the
@@ -111,8 +112,8 @@ do {
     $expected_content{userfield} = 'testing-1-2-3';
 
     my ($request) = check_request($send, "ok message with defaults, http", $SENT, [200 => 'OK: 0; Sent queued message ID: 941596d028699601']);
-    is($request->method, 'POST', 'Default method is post');
-    like($request->url, qr/^http:/, 'Default transport is http');
+    is($request->method, 'POST', 'default method is post');
+    like($request->url, qr/^http:/, 'default transport is http');
 
     delete $message{_api};
     delete $message{_userfield};

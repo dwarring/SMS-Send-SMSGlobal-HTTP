@@ -12,6 +12,8 @@ requires (
     'LWP::UserAgent'        => 0,
     'SMS::Send::Driver'     => 0,
     'HTTP::Request::Common' => 0,
+    'Try::Tiny'             => 0,
+    'Scalar::Util'          => 0,
     'parent'                => 0,
     );
 
@@ -21,7 +23,7 @@ recommends (
 test_requires (
     'Test::More'       => 0,
     'Test::NoWarnings' => 0,
-    'Test::Exception'  => 0,
+    'Test::Fatal'      => 0,
     'Test::MockObject' => 0,
     'HTTP::Response'   => 0,
     );

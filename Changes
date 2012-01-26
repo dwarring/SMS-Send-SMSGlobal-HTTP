@@ -33,5 +33,11 @@ Revision history for SMS-Send-SMSGlobal-HTTP
         - Save individual response codes in __responses attribute.
 
 0.8     8th July 2011
-        - POD tweaks
+        - POD Tweaks
+
+0.9     27th Janaury 2012
+        Introduced Try::Tiny for error handling:
+        - replaced eval() with try{...}catch{...}
+        Testing:
+        - Replaced Test::Exception with Test::Fatal (based on Try::Tiny)
 

@@ -9,6 +9,8 @@ use parent 'SMS::Send::Driver', 'Class::Accessor';
 
 require LWP::UserAgent;
 use HTTP::Request::Common qw(POST);
+use Try::Tiny;
+use Scalar::Util qw();
 
 sub __fields {
     return qw(action text to _user _password _from _maxsplit _scheduledatetime
@@ -24,11 +26,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.08
+VERSION 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 DESCRIPTION
 
@@ -202,8 +204,7 @@ sub send_sms {
 	#
 	for ( $http_params{scheduledatetime} ) {
 	    $_ = $_->ymd('-') .' '.$_->hms(':')
-		if (ref && eval{
-		    local $SIG{__DIE__};
+		if (Scalar::Util::blessed($_) && try {
 		    $_->can('ymd') && $_->can('hms')
 		    })
 	}
@@ -253,12 +254,13 @@ sub send_sms {
 
     my $req = POST($address => [ %{ \%http_params } ]);
 
-    my $response = eval {
-	local $SIG{__DIE__};
+    my $response = try {
 	$msg->__ua->request($req);
+    }
+    catch {
+	die $_;
     };
 
-    die $@ if $@;
     die "unable to get response"
 	unless $response;
 
