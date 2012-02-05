@@ -376,7 +376,7 @@ L<http://search.cpan.org/dist/SMS-Send-SMSGlobal-HTTP/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011 David Warring.
+Copyright 2011-2012 David Warring.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
