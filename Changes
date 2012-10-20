@@ -42,3 +42,7 @@ Revision history for SMS-Send-SMSGlobal-HTTP
           -- Picked up latest Module::Install (1.04)
           -- Replaced Test::Exception with Test::Fatal (based on Try::Tiny)
 
+0.10     21st October 2012
+         - Upgraded Module::Install from 1.04 to 1.06. See:
+           http://weblog.bulknews.net/post/33907905561/do-not-ship-modules-with-module-install-1-04
+
