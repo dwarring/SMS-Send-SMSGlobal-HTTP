@@ -254,12 +254,7 @@ sub send_sms {
 
     my $req = POST($address => [ %{ \%http_params } ]);
 
-    my $response = try {
-	$msg->__ua->request($req);
-    }
-    catch {
-	die $_;
-    };
+    my $response = $msg->__ua->request($req);
 
     die "unable to get response"
 	unless $response;
@@ -386,4 +381,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of SMS::Send::SMSGlobal
+1; # End of SMS::Send::SMSGlobal::HTTP
