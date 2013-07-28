@@ -240,10 +240,10 @@ sub send_sms {
     if (my $transport = $msg->__transport) {
 
 	if ($transport eq 'http') {
-	    $address =~ s{^https:}{http:};
+	    $address =~ s{^https:}{http:}i;
 	}
 	elsif ($transport eq 'https') {
-	    $address =~ s{^http:}{https:};
+	    $address =~ s{^http:}{https:}i;
 	}
 	else {
 	    die "transport '$transport': not 'http' or 'https'" 
