@@ -21,11 +21,11 @@ my $send;
 
 is( exception {
     $send = SMS::Send->new( 'SMSGlobal::HTTP',
-			    _user => "someone",
-			    _password => "secret",
-			    __ua => Test::MockObject->new,
-##			        __verbose => 1,
-	)} => undef, "SMS::Send->new('SMSGlobal::HTTP', ...) - lives");
+                            _user => "someone",
+                            _password => "secret",
+                            __ua => Test::MockObject->new,
+##                                __verbose => 1,
+        )} => undef, "SMS::Send->new('SMSGlobal::HTTP', ...) - lives");
 
 isa_ok($send,'SMS::Send');
 
@@ -36,10 +36,10 @@ my (@requests,@mock_responses);
 
 $mock_ua->mock( 
     request => sub {
-	shift;
-	push @requests => shift;
-	shift @mock_responses
-	    or die "no more responses";
+        shift;
+        push @requests => shift;
+        shift @mock_responses
+            or die "no more responses";
     } );
 
 # Ugly but we need to mung the User Agent inside the driver inside the
@@ -70,10 +70,10 @@ sub check_request {
     my ($obj, $case, $expect_ok, @stati) = @_;
 
     @mock_responses = map {
-	my ($code,$content) = @$_;
-	my $resp = HTTP::Response->new($code);
-	$resp->content($content);
-	$resp;
+        my ($code,$content) = @$_;
+        my $resp = HTTP::Response->new($code);
+        $resp->content($content);
+        $resp;
     } @stati;
 
     @requests = ();
@@ -83,12 +83,12 @@ sub check_request {
     is(!!$stat, !!$expect_ok, "send_sms() status $case");
 
     my $request = $requests[-1]
-	or die "no request - unable to continue";
+        or die "no request - unable to continue";
 
     my %content = $request->content =~ /\G(.*?)=(.*?)(?:&|$)/g;
 
     is_deeply(\%content,\%expected_content, "request content $case")
-	if %expected_content;
+        if %expected_content;
 
     ok(!@mock_responses,"number of requests $case");
 
@@ -144,19 +144,19 @@ do {
     ## date objects
 
     $mock_dt->mock( 
-	ymd => sub {
-	    my $self = shift;
-	    my $sep = shift;
-	    join( $sep, qw(2061 10 21) );
-	}
-	);
+        ymd => sub {
+            my $self = shift;
+            my $sep = shift;
+            join( $sep, qw(2061 10 21) );
+        }
+        );
     $mock_dt->mock(
-	hms => sub {
-	    my $self = shift;
-	    my $sep = shift;
-	    join( $sep, qw(09 05 17) );
-	},
-	);
+        hms => sub {
+            my $self = shift;
+            my $sep = shift;
+            join( $sep, qw(09 05 17) );
+        },
+        );
 
     $message{'_scheduledatetime'} = $mock_dt;
     $expected_content{scheduledatetime} = '2061-10-21+09%3A05%3A17';
@@ -193,8 +193,8 @@ do {
     # - only available via direct use of the driver.
     #
     my @responses = ('OK: 0; Sent queued message ID: 941596d028699604',
-		     'ERROR: Missing parameter: to',
-		     'OK: 0; Sent queued message ID: 941596d028699605');
+                     'ERROR: Missing parameter: to',
+                     'OK: 0; Sent queued message ID: 941596d028699605');
 
     $message{to} = ['+61(4)770090099', 'snoops!', '0419 123 456'];
     $expected_content{to} = '614770090099%2Csnoops%2C0419123456';

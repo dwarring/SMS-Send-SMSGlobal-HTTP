@@ -26,11 +26,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.11
+VERSION 0.12
 
 =cut
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 =head1 DESCRIPTION
 
@@ -65,14 +65,14 @@ sub new {
     #
 
     $self->{_user} = delete($args{_user})
-	|| delete($args{_username})
-	|| delete($args{_login});
+        || delete($args{_username})
+        || delete($args{_login});
 
     $self->{_password} = delete $args{_pass}
-	|| delete $args{_password};
+        || delete $args{_password};
 
     foreach (sort keys %args) {
-	$self->{$_} = $args{$_};
+        $self->{$_} = $args{$_};
     }
 
     $self->{_maxsplit} ||= 3;
@@ -158,7 +158,7 @@ Custom field to store internal IDs or other information (Maximum of
 
 =item C<__address> 
 
-SMSGlobal gateway address (default: 'http://smsglobal.com/http-api.php');
+SMSGlobal gateway address (default: 'http://www.smsglobal.com/http-api.php');
 
 =item C<__transport>
 
@@ -181,73 +181,73 @@ sub send_sms {
     my $self = shift;
     my %opt = @_;
 
-    $self->__responses( [] );	
+    $self->__responses( [] );        
 
     my $msg = ref($self)->new( %$self, %opt );
 
     my %http_params = (
-	action => 'sendsms',
-	);
+        action => 'sendsms',
+        );
 
     foreach (sort keys %$msg) {
-	next if m{^__};
+        next if m{^__};
 
-	if (defined (my $val = $msg->{$_}) ) {
-	    (my $key = $_) =~ s{^_}{};
-	    $http_params{$key} = $val;
-	}
+        if (defined (my $val = $msg->{$_}) ) {
+            (my $key = $_) =~ s{^_}{};
+            $http_params{$key} = $val;
+        }
     }
 
     if (ref $http_params{scheduledatetime} ) {
-	#
-	# stringify objects that support ymd & hms methods
-	#
-	for ( $http_params{scheduledatetime} ) {
-	    $_ = $_->ymd('-') .' '.$_->hms(':')
-		if (Scalar::Util::blessed($_) && try {
-		    $_->can('ymd') && $_->can('hms')
-		    })
-	}
+        #
+        # stringify objects that support ymd & hms methods
+        #
+        for ( $http_params{scheduledatetime} ) {
+            $_ = $_->ymd('-') .' '.$_->hms(':')
+                if (Scalar::Util::blessed($_) && try {
+                    $_->can('ymd') && $_->can('hms')
+                    })
+        }
     }
 
     if ( defined $http_params{to} ) {
 
-	$http_params{to} = join(',', @{ $http_params{to} })
-	    if (ref( $http_params{to} || '') eq 'ARRAY');
-	#
-	# smsglobl/http will accept 'to' as a comma-separated list of
-	# telephone numbers. Omit all but commas and alphanumerics.
-	#
-	$http_params{to} =~ s{[^\w,]}{}g;
+        $http_params{to} = join(',', @{ $http_params{to} })
+            if (ref( $http_params{to} || '') eq 'ARRAY');
+        #
+        # smsglobl/http will accept 'to' as a comma-separated list of
+        # telephone numbers. Omit all but commas and alphanumerics.
+        #
+        $http_params{to} =~ s{[^\w,]}{}g;
     }
 
     if ( defined $http_params{from} ) {
-	#
-	# restrict 'from' to an alphanumeric caller-ID
-	#
-	$http_params{from} =~ s{[^\w]}{}g;
+        #
+        # restrict 'from' to an alphanumeric caller-ID
+        #
+        $http_params{from} =~ s{[^\w]}{}g;
     }
 
     if ($msg->__verbose) {
-	print STDERR "http params:\n";
-	foreach (sort keys %http_params) {
-	    print STDERR "  $_: $http_params{$_}\n"
-	}
+        print STDERR "http params:\n";
+        foreach (sort keys %http_params) {
+            print STDERR "  $_: $http_params{$_}\n"
+        }
     }
 
     my $address = $msg->__address || 'http://www.smsglobal.com/http-api.php';
 
     if (my $transport = $msg->__transport) {
 
-	if ($transport eq 'http') {
-	    $address =~ s{^https:}{http:}i;
-	}
-	elsif ($transport eq 'https') {
-	    $address =~ s{^http:}{https:}i;
-	}
-	else {
-	    die "transport '$transport': not 'http' or 'https'" 
-	}
+        if ($transport eq 'http') {
+            $address =~ s{^https:}{http:}i;
+        }
+        elsif ($transport eq 'https') {
+            $address =~ s{^http:}{https:}i;
+        }
+        else {
+            die "transport '$transport': not 'http' or 'https'" 
+        }
     }
 
     print STDERR "Address : $address" if $msg->__verbose;
@@ -257,31 +257,30 @@ sub send_sms {
     my $response = $msg->__ua->request($req);
 
     die "unable to get response"
-	unless $response;
+        unless $response;
 
     if ($msg->__verbose ) {
-	
-	print STDERR "**Status**\n",$response->status_line,"\n";
-	print STDERR "**Headers**\n",$response->headers_as_string,"\n";
-	print STDERR "**Content**\n",$response->content,"\n";
+        print STDERR "**Status**\n",$response->status_line,"\n";
+        print STDERR "**Headers**\n",$response->headers_as_string,"\n";
+        print STDERR "**Content**\n",$response->content,"\n";
     }
 
     my $sent = 0;
 
     if ( $response->is_success ) {
 
-	my @responses = split (/[\n\r]+/, $response->content);
+        my @responses = split (/[\n\r]+/, $response->content);
 
-	foreach (@responses) {
-	    push ( @{ $self->__responses }, $_ );
+        foreach (@responses) {
+            push ( @{ $self->__responses }, $_ );
 
-	    if ( m{^(OK|SMSGLOBAL DELAY)} ) {
-		$sent++;
-	    }
-	}
+            if ( m{^(OK|SMSGLOBAL DELAY)} ) {
+                $sent++;
+            }
+        }
     }
     else {
-	die $response->status_line;
+        die $response->status_line;
     }
 
     return $sent;
@@ -317,12 +316,12 @@ recipients.
 C<__responses> contains sucesss or error codes for each recipient.
 
     if ( $sent < scalar @recipients ) {
-	warn "failed to send to some participants";
+        warn "failed to send to some participants";
 
-	my @responses = @{ $driver->__responses || [] };
-	for ( @responses ) {
-	    warn $_ if m{ERROR};
-	}
+        my @responses = @{ $driver->__responses || [] };
+        for ( @responses ) {
+            warn $_ if m{ERROR};
+        }
     }
 
 =head1 AUTHOR

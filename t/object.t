@@ -15,13 +15,13 @@ $mock_ua->mock( howdy => sub {'hello'} );
 my $obj;
 is( exception {
     $obj = SMS::Send::SMSGlobal::HTTP->new(
-	_user      => 'my-username',
-	_password  => 'my-password',
-	__verbose =>  1,
-	__ua => $mock_ua,
-	);
-	  } => undef,
-	  "SMS::Send::SMSGlobal::HTTP->new(...) - lives"
+        _user      => 'my-username',
+        _password  => 'my-password',
+        __verbose =>  1,
+        __ua => $mock_ua,
+        );
+          } => undef,
+          "SMS::Send::SMSGlobal::HTTP->new(...) - lives"
     );
 
 isa_ok( $obj => "SMS::Send::SMSGlobal::HTTP");
