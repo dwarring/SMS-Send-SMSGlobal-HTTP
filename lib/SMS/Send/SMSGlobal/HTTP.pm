@@ -26,11 +26,11 @@ SMS::Send::SMSGlobal::HTTP - SMS::Send SMSGlobal.com Driver
 
 =head1 VERSION
 
-VERSION 0.10
+VERSION 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 DESCRIPTION
 
@@ -235,7 +235,7 @@ sub send_sms {
 	}
     }
 
-    my $address = $msg->__address || 'http://smsglobal.com/http-api.php';
+    my $address = $msg->__address || 'http://www.smsglobal.com/http-api.php';
 
     if (my $transport = $msg->__transport) {
 

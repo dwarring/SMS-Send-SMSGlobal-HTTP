@@ -46,3 +46,6 @@ Revision history for SMS-Send-SMSGlobal-HTTP
          - Upgraded Module::Install from 1.04 to 1.06. See:
            http://weblog.bulknews.net/post/33907905561/do-not-ship-modules-with-module-install-1-04
 
+0.11     28th November 2103
+         RT #87477 Changed Gateway address to http://www.smsglobal.com/http-api.php
+         ken_yap++
