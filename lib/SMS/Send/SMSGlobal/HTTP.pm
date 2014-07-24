@@ -113,7 +113,7 @@ The text of the message.
 
 Sets the from caller-ID. This can either be a reply telephone number, or an
 alphanumeric identifier matching C<^[0-9a-zA-Z_]+$>. For details. see
-http://www.routomessaging.com/dynamic-sender-id-service.pmx .
+l<http://www.routomessaging.com/dynamic-sender-id-service.pmx>.
 
 =item C<_maxsplit> (default 3)
 
